@@ -1,0 +1,4 @@
+CREATE TABLE model_years (
+    id BIGSERIAL NOT NULL PRIMARY KEY,
+    year INTEGER NOT NULL UNIQUE CHECK (year > 0)
+);

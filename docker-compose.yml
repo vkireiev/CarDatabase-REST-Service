@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  db:
+    image: 'postgres:14.9-bullseye'
+    container_name: db
+    networks:
+      - default
+#    ports:
+#      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    expose:
+      - ${POSTGRES_PORT}     
+    environment:
+      - TZ=${TIME_ZONE}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    command: 
+      ["postgres", "-p", "${POSTGRES_PORT}", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+    
+  keycloak:
+    image: 'quay.io/keycloak/keycloak:22.0.3'
+    container_name: keycloak
+    tty: true
+    networks:
+      - default    
+    ports:
+      - ${KEYCLOAK_PORT}:${KEYCLOAK_PORT}
+    expose:
+      - ${KEYCLOAK_PORT}      
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/${KEYCLOAK_PORT} && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3 
+      start_period: 30s
+    environment:
+      - TZ=${TIME_ZONE}
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KC_HOSTNAME_URL=http://keycloak:${KEYCLOAK_PORT}   
+      - KC_HEALTH_ENABLED=true 
+      - KC_METRICS_ENABLED=true
+    command: 
+      - start-dev 
+      - --http-port=${KEYCLOAK_PORT}
+      - --import-realm
+    volumes:
+      - ${KEYCLOAK_REALM_SRC}:${KEYCLOAK_REALM_DST}   
+
+  app:
+    image: 'cardatabase:latest'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    tty: true
+    networks:
+      - default    
+    ports:
+      - ${APP_PORT}:${APP_PORT}    
+    expose:
+      - ${APP_PORT}       
+    depends_on:
+      db:
+        condition: service_started
+      keycloak:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      #
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:${POSTGRES_PORT}/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_GENERATE_DDL=false      
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+      - SPRING_JPA_SHOW_SQL=false
+      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+      #
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER-URI=http://keycloak:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM_NAME}
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_USER_NAME_ATTRIBUTE=preferred_username
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI=http://keycloak:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM_NAME}
+      
+volumes:
+  pgdata:
+    driver: local
+  
+networks:
+  default:

@@ -1,0 +1,30 @@
+-- ModelYear
+ALTER SEQUENCE IF EXISTS "model_years_id_seq" RESTART WITH 1;
+INSERT INTO public."model_years" (id, year) VALUES(1, 2020);
+INSERT INTO public."model_years" (id, year) VALUES(2, 2019);
+INSERT INTO public."model_years" (id, year) VALUES(3, 2018);
+INSERT INTO public."model_years" (id, year) VALUES(4, 2017);
+INSERT INTO public."model_years" (id, year) VALUES(5, 2016);
+INSERT INTO public."model_years" (id, year) VALUES(6, 2015);
+INSERT INTO public."model_years" (id, year) VALUES(7, 2014);
+INSERT INTO public."model_years" (id, year) VALUES(8, 2013);
+INSERT INTO public."model_years" (id, year) VALUES(9, 2012);
+INSERT INTO public."model_years" (id, year) VALUES(10, 2011);
+INSERT INTO public."model_years" (id, year) VALUES(11, 2010);
+INSERT INTO public."model_years" (id, year) VALUES(12, 2009);
+INSERT INTO public."model_years" (id, year) VALUES(13, 2008);
+INSERT INTO public."model_years" (id, year) VALUES(14, 2007);
+INSERT INTO public."model_years" (id, year) VALUES(15, 2006);
+INSERT INTO public."model_years" (id, year) VALUES(16, 2005);
+INSERT INTO public."model_years" (id, year) VALUES(17, 2002);
+INSERT INTO public."model_years" (id, year) VALUES(18, 2001);
+INSERT INTO public."model_years" (id, year) VALUES(19, 2000);
+INSERT INTO public."model_years" (id, year) VALUES(20, 1999);
+INSERT INTO public."model_years" (id, year) VALUES(21, 1998);
+INSERT INTO public."model_years" (id, year) VALUES(22, 1997);
+INSERT INTO public."model_years" (id, year) VALUES(23, 1994);
+INSERT INTO public."model_years" (id, year) VALUES(24, 1993);
+INSERT INTO public."model_years" (id, year) VALUES(25, 1992);
+INSERT INTO public."model_years" (id, year) VALUES(26, 2021);
+
+ALTER SEQUENCE IF EXISTS "model_years_id_seq" RESTART WITH 101;
